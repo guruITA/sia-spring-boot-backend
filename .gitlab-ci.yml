@@ -1,20 +1,29 @@
-# You can override the included template(s) by including variable overrides
-# SAST customization: https://docs.gitlab.com/user/application_security/sast/#available-cicd-variables
-# Secret Detection customization: https://docs.gitlab.com/user/application_security/secret_detection/pipeline/configure/
-# Dependency Scanning customization: https://docs.gitlab.com/user/application_security/dependency_scanning/dependency_scanning_sbom/#customizing-analyzer-behavior
-# Container Scanning customization: https://docs.gitlab.com/user/application_security/container_scanning/#customizing-analyzer-behavior
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ci/variables/#cicd-variable-precedence
+# Define the stages for the CI/CD pipeline https://docs.gitlab.com/ci/yaml/#stages
 stages:
-- test
-- secret-detection
-sast:
-  stage: test
-include:
-- template: Security/SAST.gitlab-ci.yml
-- template: Security/Secret-Detection.gitlab-ci.yml
-variables:
-  SECRET_DETECTION_ENABLED: 'true'
-secret_detection:
-  stage: secret-detection
+- validate
 
+require_development_source_for_production:
+    stage: validate
+
+    # https://docs.gitlab.com/ci/yaml/#image
+    # https://hub.docker.com/_/alpine
+    image: alpine:3.24
+
+    # https://docs.gitlab.com/ci/yaml/#tags
+    tags:
+      - hva # https://gitlab.fdmci.hva.nl/studio/social-impact-apps/onderwijs/projects/2026-2027-semester-1/individual/sia-individual-gurpreet-singh/individual-project/-/settings/ci_cd#js-runners-settings
+
+    # https://docs.gitlab.com/ci/yaml/#rules
+    rules:
+      # https://docs.gitlab.com/ci/jobs/job_rules/#ci_pipeline_source-predefined-variable
+      - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
+
+    # https://docs.gitlab.com/ci/yaml/#script
+    script:
+      - |
+        if [ "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" != "development" ] || [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_ID" != "$CI_MERGE_REQUEST_PROJECT_ID" ]; then
+          echo "Merge request source branch must be 'development' and source project must be the same as target project for production merges"
+          exit 1
+        fi
+   
+        echo "Valid merge request branch: development"
