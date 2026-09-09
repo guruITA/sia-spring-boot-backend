@@ -1,29 +1,42 @@
 # Define the stages for the CI/CD pipeline https://docs.gitlab.com/ci/yaml/#stages
 stages:
-- validate
+  - validate
 
 require_development_source_for_production:
-    stage: validate
+  stage: validate
 
-    # https://docs.gitlab.com/ci/yaml/#image
-    # https://hub.docker.com/_/alpine
-    image: alpine:3.24
+  # https://docs.gitlab.com/ci/yaml/#image
+  # https://hub.docker.com/_/alpine
+  image: alpine:3.24
 
-    # https://docs.gitlab.com/ci/yaml/#tags
-    tags:
-      - hva # https://gitlab.fdmci.hva.nl/studio/social-impact-apps/onderwijs/projects/2026-2027-semester-1/individual/sia-individual-gurpreet-singh/individual-project/-/settings/ci_cd#js-runners-settings
+  # https://docs.gitlab.com/ci/yaml/#tags
+  tags:
+    - hva
 
-    # https://docs.gitlab.com/ci/yaml/#rules
-    rules:
-      # https://docs.gitlab.com/ci/jobs/job_rules/#ci_pipeline_source-predefined-variable
-      - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
+  # https://docs.gitlab.com/ci/yaml/#rules
+  rules:
+    # https://docs.gitlab.com/ci/jobs/job_rules/#ci_pipeline_source-predefined-variable
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
 
-    # https://docs.gitlab.com/ci/yaml/#script
-    script:
-      - |
-        if [ "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" != "development" ] || [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_ID" != "$CI_MERGE_REQUEST_PROJECT_ID" ]; then
-          echo "Merge request source branch must be 'development' and source project must be the same as target project for production merges"
-          exit 1
-        fi
-   
-        echo "Valid merge request branch: development"
+  # https://docs.gitlab.com/ci/yaml/#before_script
+  # https://docs.gitlab.com/ci/yaml/script/#add-color-codes-to-script-output
+  before_script:
+    - TXT_RED="\e[31m"
+    - TXT_GREEN="\e[32m"
+    - TXT_YELLOW="\e[33m"
+    - TXT_CLEAR="\e[0m"
+
+  # https://docs.gitlab.com/ci/yaml/#script
+  script:
+    - |
+      if [ "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" != "development" ]; then
+        echo -e "${TXT_RED} ERROR: Expected source branch 'development' but received '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME' ${TXT_CLEAR}"
+        exit 1 
+      fi
+      
+      if [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_ID" != "$CI_MERGE_REQUEST_PROJECT_ID" ]; then 
+        echo -e "${TXT_RED} ERROR: The merge request must come from the same Gitlab project ${TXT_CLEAR}"
+        exit 1
+      fi 
+      
+      echo -e "${TXT_GREEN} Valid merge request branch: development ${TXT_CLEAR}"
