@@ -40,3 +40,4 @@ require_development_source_for_production:
       fi 
       
       echo -e "${TXT_GREEN} Valid merge request branch: development ${TXT_CLEAR}"
+      
