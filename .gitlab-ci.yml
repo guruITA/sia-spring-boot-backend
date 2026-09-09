@@ -4,10 +4,14 @@ stages:
 
 require_development_source_for_production:
     stage: validate
-    
+
     # https://docs.gitlab.com/ci/yaml/#image
     # https://hub.docker.com/_/alpine
     image: alpine:3.24
+
+    # https://docs.gitlab.com/ci/yaml/#tags
+    tags:
+      - hva # https://gitlab.fdmci.hva.nl/studio/social-impact-apps/onderwijs/projects/2026-2027-semester-1/individual/sia-individual-gurpreet-singh/individual-project/-/settings/ci_cd#js-runners-settings
 
     # https://docs.gitlab.com/ci/yaml/#rules
     rules:
