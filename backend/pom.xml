@@ -76,6 +76,8 @@
 							<include>src/test/java/**/*.java</include>
 						</includes>
 
+						<removeUnusedImports/>
+
 						<googleJavaFormat>
 							<version>${googleJavaFormat.version}</version>
 							<style>GOOGLE</style>
